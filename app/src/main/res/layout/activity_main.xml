@@ -1,0 +1,1086 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootFrame"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:background="#0B0F17">
+
+    <!-- ========================================================= -->
+    <!-- SCREEN 1: PREMIUM GOOGLE-STYLE SCAMGUARD DIALER HOME      -->
+    <!-- ========================================================= -->
+    <LinearLayout
+        android:id="@+id/layoutDialerHome"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <!-- Banner Shown When Returning to Dialer During an Active Call -->
+        <LinearLayout
+            android:id="@+id/bannerReturnToCall"
+            android:layout_width="match_parent"
+            android:layout_height="42dp"
+            android:background="#15803D"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvReturnToCallText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Call in progress • Tap to return to call screen"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 1. Floating Pill Search Bar (Google Phone Style) -->
+        <LinearLayout
+            android:id="@+id/searchBarContainer"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔍"
+                android:textSize="15sp"
+                android:layout_marginEnd="10dp" />
+
+            <EditText
+                android:id="@+id/etGlobalSearch"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="Search contacts &amp; places"
+                android:textColorHint="#8E9BAE"
+                android:textColor="#F1F5F9"
+                android:textSize="15.5sp"
+                android:singleLine="true"
+                android:imeOptions="actionSearch" />
+
+            <TextView
+                android:id="@+id/btnClearSearch"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:gravity="center"
+                android:text="✕"
+                android:textColor="#94A3B8"
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+            <!-- Account Filter Avatar Chip -->
+            <TextView
+                android:id="@+id/btnAccountBadge"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_marginStart="6dp"
+                android:gravity="center"
+                android:text="All"
+                android:textColor="#FFFFFF"
+                android:textSize="11.5sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Subtle Setup Banner (Auto-Hides Once Default Dialer is Set) -->
+        <LinearLayout
+            android:id="@+id/bannerPermissionsNeeded"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/sample_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Set ScamGuard as Default Phone App"
+                android:textColor="#BAE6FD"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/btnSetupPermissions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="5dp"
+                android:text="Enable"
+                android:textColor="#0B0F17"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 2. Main Content Frame -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <!-- TAB VIEW A: RECENTS & CONTACTS LIST -->
+            <LinearLayout
+                android:id="@+id/layoutListContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingHorizontal="12dp"
+                android:visibility="gone">
+
+                <!-- ===================================================== -->
+                <!-- FAVORITES QUICK-ACCESS STRIP (TOP OF RECENTS & CONTACTS) -->
+                <!-- ===================================================== -->
+                <LinearLayout
+                    android:id="@+id/layoutFavoritesStripSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="4dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="6dp"
+                    android:visibility="visible">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="6dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="FAVORITES"
+                            android:letterSpacing="0.06"
+                            android:textColor="#93C5FD"
+                            android:textSize="11.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/btnAddFavoriteQuick"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="12dp"
+                            android:paddingVertical="4dp"
+                            android:text="＋ Add"
+                            android:textColor="#A8C7FA"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:id="@+id/containerFavoritesHorizontal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical" />
+                    </HorizontalScrollView>
+                </LinearLayout>
+
+                <!-- ===================================================== -->
+                <!-- RECENT CALL FILTER CHIPS (EXACT ORDER)                -->
+                <!-- All | Missed | Contacts | Non-Spam | Spam | Recordings -->
+                <!-- ===================================================== -->
+                <HorizontalScrollView
+                    android:id="@+id/scrollRecentsFilters"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:layout_marginVertical="4dp"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="2dp">
+
+                        <TextView
+                            android:id="@+id/chipFilterAll"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="6dp"
+                            android:gravity="center"
+                            android:paddingHorizontal="14dp"
+                            android:text="All"
+                            android:textColor="#F8FAFC"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/chipFilterMissed"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="6dp"
+                            android:gravity="center"
+                            android:paddingHorizontal="14dp"
+                            android:text="Missed"
+                            android:textColor="#94A3B8"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/chipFilterContacts"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="6dp"
+                            android:gravity="center"
+                            android:paddingHorizontal="14dp"
+                            android:text="Contacts"
+                            android:textColor="#94A3B8"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/chipFilterNonSpam"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="6dp"
+                            android:gravity="center"
+                            android:paddingHorizontal="14dp"
+                            android:text="Non-Spam"
+                            android:textColor="#94A3B8"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/chipFilterSpam"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:layout_marginEnd="6dp"
+                            android:gravity="center"
+                            android:paddingHorizontal="14dp"
+                            android:text="Spam"
+                            android:textColor="#94A3B8"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/chipFilterRecordings"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            android:gravity="center"
+                            android:paddingHorizontal="14dp"
+                            android:text="Recordings"
+                            android:textColor="#94A3B8"
+                            android:textSize="12.5sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </HorizontalScrollView>
+
+                <!-- Account Filter Bar (Contacts Tab) -->
+                <LinearLayout
+                    android:id="@+id/layoutGoogleFilterBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="4dp"
+                    android:layout_marginVertical="4dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/btnFilterAccount"
+                        android:layout_width="0dp"
+                        android:layout_height="34dp"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:paddingHorizontal="14dp"
+                        android:text="All Contacts ▾"
+                        android:textColor="#A8C7FA"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnAddNewContact"
+                        android:layout_width="wrap_content"
+                        android:layout_height="34dp"
+                        android:layout_marginStart="8dp"
+                        android:gravity="center"
+                        android:paddingHorizontal="14dp"
+                        android:text="＋ Create Contact"
+                        android:textColor="#86EFAC"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvListHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:text="ALL CONTACTS"
+                    android:letterSpacing="0.06"
+                    android:textColor="#8E9BAE"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <ListView
+                    android:id="@+id/listViewItems"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:divider="@android:color/transparent"
+                    android:dividerHeight="6dp"
+                    android:clipToPadding="false"
+                    android:paddingBottom="12dp" />
+            </LinearLayout>
+
+            <!-- TAB VIEW B: PREMIUM GOOGLE PIXEL-STYLE ROUNDED KEYPAD -->
+            <LinearLayout
+                android:id="@+id/layoutKeypadContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="bottom"
+                android:paddingHorizontal="20dp"
+                android:paddingBottom="12dp"
+                android:visibility="visible">
+
+                <!-- Live Caller-ID / Contact Suggestion Pill Card -->
+                <LinearLayout
+                    android:id="@+id/cardCallerIdPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="10dp"
+                    android:layout_marginBottom="8dp">
+
+                    <TextView
+                        android:id="@+id/tvMatchedContact"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Enter a number to call or check Caller ID"
+                        android:textColor="#A8C7FA"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnAddDialedToContact"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text="＋ Save"
+                        android:textColor="#38BDF8"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <!-- Dialed Number Display -->
+                <TextView
+                    android:id="@+id/tvDialedNumber"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:gravity="center"
+                    android:hint=""
+                    android:textColor="#F8FAFC"
+                    android:textSize="36sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:singleLine="true"
+                    android:layout_marginBottom="6dp" />
+
+                <!-- 4x3 Rounded Pill Keypad Grid -->
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="3"
+                    android:rowCount="4"
+                    android:layout_marginBottom="14dp">
+
+                    <TextView android:id="@+id/key1" android:layout_width="0dp" android:layout_height="62dp" android:layout_columnWeight="1" android:layout_margin="5dp" android:gravity="center" android:text="1\n➿" android:lineSpacingExtra="-2dp" android:textColor="#F8FAFC" android:textSize="22sp" />
+                    <TextView android:id="@+id/key2" android:layout_width="0dp" android:layout_height="62dp" android:layout_columnWeight="1" android:layout_margin="5dp" android:gravity="center" android:text="2\nABC" android:lineSpacingExtra="-2dp" android:textColor="#F8FAFC" android:textSize="22sp" />
+                    <TextView android:id="@+id/key3" android:layout_width="0dp" android:layout_height="62dp" android:layout_columnWeight="1" android:layout_margin="5dp" android:gravity="center" android:text="3\nDEF" android:lineSpacingExtra="-2dp" android:textColor="#F8FAFC" android:textSize="22sp" />
+
+                    <TextView android:id="@+id/key4" android:layout_width="0dp" android:layout_height="62dp" android:layout_columnWeight="1" android:layout_margin="5dp" android:gravity="center" android:text="4\nGHI" android:lineSpacingExtra="-2dp" android:textColor="#F8FAFC" android:textSize="22sp" />
+                    <TextView android:id="@+id/key5" android:layout_width="0dp" android:layout_height="62dp" android:layout_columnWeight="1" android:layout_margin="5dp" android:gravity="center" android:text="5\nJKL" android:lineSpacingExtra="-2dp" android:textColor="#F8FAFC" android:textSize="22sp" />
+                    <TextView android:id="@+id/key6" android:layout_width="0dp" android:layout_height="62dp" android:layout_columnWeight="1" android:layout_margin="5dp" android:gravity="center" android:text="6\nMNO" android:lineSpacingExtra="-2dp" android:textColor="#F8FAFC" android:textSize="22sp" />
+
+                    <TextView android:id="@+id/key7" android:layout_width="0dp" android:layout_height="62dp" android:layout_columnWeight="1" android:layout_margin="5dp" android:gravity="center" android:text="7\nPQRS" android:lineSpacingExtra="-2dp" android:textColor="#F8FAFC" android:textSize="22sp" />
+                    <TextView android:id="@+id/key8" android:layout_width="0dp" android:layout_height="62dp" android:layout_columnWeight="1" android:layout_margin="5dp" android:gravity="center" android:text="8\nTUV" android:lineSpacingExtra="-2dp" android:textColor="#F8FAFC" android:textSize="22sp" />
+                    <TextView android:id="@+id/key9" android:layout_width="0dp" android:layout_height="62dp" android:layout_columnWeight="1" android:layout_margin="5dp" android:gravity="center" android:text="9\nWXYZ" android:lineSpacingExtra="-2dp" android:textColor="#F8FAFC" android:textSize="22sp" />
+
+                    <TextView android:id="@+id/keyStar" android:layout_width="0dp" android:layout_height="62dp" android:layout_columnWeight="1" android:layout_margin="5dp" android:gravity="center" android:text="＊" android:textColor="#F8FAFC" android:textSize="24sp" />
+                    <TextView android:id="@+id/key0" android:layout_width="0dp" android:layout_height="62dp" android:layout_columnWeight="1" android:layout_margin="5dp" android:gravity="center" android:text="0\n＋" android:lineSpacingExtra="-2dp" android:textColor="#F8FAFC" android:textSize="22sp" />
+                    <TextView android:id="@+id/keyHash" android:layout_width="0dp" android:layout_height="62dp" android:layout_columnWeight="1" android:layout_margin="5dp" android:gravity="center" android:text="＃" android:textColor="#F8FAFC" android:textSize="24sp" />
+                </GridLayout>
+
+                <!-- Bottom Action Row: Check ID (Left) | Circular Vector Call Button (Center) | Backspace (Right) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="72dp"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/btnQuickLookup"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:gravity="center"
+                        android:text="ID"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="#A8C7FA" />
+
+                    <View
+                        android:layout_width="36dp"
+                        android:layout_height="1dp" />
+
+                    <ImageView
+                        android:id="@+id/btnMakeCall"
+                        android:layout_width="68dp"
+                        android:layout_height="68dp"
+                        android:padding="19dp"
+                        android:src="@drawable/ic_call_answer"
+                        android:contentDescription="Place Call" />
+
+                    <View
+                        android:layout_width="36dp"
+                        android:layout_height="1dp" />
+
+                    <TextView
+                        android:id="@+id/btnBackspace"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:gravity="center"
+                        android:text="⌫"
+                        android:textColor="#94A3B8"
+                        android:textSize="22sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- TAB VIEW C: SCAMGUARD SHIELD HUB (Truecaller Community DB) -->
+            <LinearLayout
+                android:id="@+id/layoutShieldContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="8dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ScamGuard Caller ID &amp; Blocklist"
+                    android:textColor="#F8FAFC"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Crowdsourced spam identification and call blocking"
+                    android:textColor="#8E9BAE"
+                    android:textSize="12.5sp" />
+
+                <TextView
+                    android:id="@+id/tvShieldLookupResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:padding="16dp"
+                    android:text="Use the top search pill to lookup any phone number, or tap any number below to inspect or unblock."
+                    android:textColor="#E2E8F0"
+                    android:textSize="13.5sp" />
+
+                <TextView
+                    android:id="@+id/btnOpenReportDialog"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center"
+                    android:text="Report &amp; Tag a Scam Number"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="6dp"
+                    android:text="COMMUNITY FLAGGED &amp; BLOCKED NUMBERS"
+                    android:letterSpacing="0.06"
+                    android:textColor="#8E9BAE"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+
+                <ListView
+                    android:id="@+id/listShieldDatabase"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:divider="@android:color/transparent"
+                    android:dividerHeight="6dp" />
+            </LinearLayout>
+
+        </FrameLayout>
+
+        <!-- 3. Material 3 Bottom Navigation Bar with Pill Indicators -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="68dp"
+            android:background="#111726"
+            android:orientation="horizontal"
+            android:weightSum="4"
+            android:paddingHorizontal="8dp"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:id="@+id/navTabKeypad"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/pillTabKeypad"
+                    android:layout_width="56dp"
+                    android:layout_height="30dp"
+                    android:gravity="center"
+                    android:text="🔢"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/tvTabKeypad"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="Keypad"
+                    android:textColor="#F8FAFC"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/navTabRecents"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/pillTabRecents"
+                    android:layout_width="56dp"
+                    android:layout_height="30dp"
+                    android:gravity="center"
+                    android:text="🕒"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/tvTabRecents"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="Recents"
+                    android:textColor="#8E9BAE"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/navTabContacts"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/pillTabContacts"
+                    android:layout_width="56dp"
+                    android:layout_height="30dp"
+                    android:gravity="center"
+                    android:text="👤"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/tvTabContacts"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="Contacts"
+                    android:textColor="#8E9BAE"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/navTabShield"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/pillTabShield"
+                    android:layout_width="56dp"
+                    android:layout_height="30dp"
+                    android:gravity="center"
+                    android:text="🛡️"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/tvTabShield"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="Scam ID"
+                    android:textColor="#8E9BAE"
+                    android:textSize="11.5sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+
+    <!-- ========================================================= -->
+    <!-- SCREEN 2: GOOGLE DIALER-STYLE INCOMING & ACTIVE CALL UI   -->
+    <!-- ========================================================= -->
+    <LinearLayout
+        android:id="@+id/layoutActiveCallScreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#090D16"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="24dp"
+        android:gravity="center_horizontal"
+        android:visibility="gone">
+
+        <!-- Optional Caller Category / Spam Pill -->
+        <TextView
+            android:id="@+id/tvCallerBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="6dp"
+            android:text="Contact"
+            android:textColor="#93C5FD"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <!-- Large 96dp Circular Caller Avatar -->
+        <TextView
+            android:id="@+id/tvInCallAvatar"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:text="A"
+            android:textColor="#FFFFFF"
+            android:textSize="38sp"
+            android:textStyle="bold" />
+
+        <!-- Caller Name or Number -->
+        <TextView
+            android:id="@+id/tvCallerName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="Caller"
+            android:textColor="#F8FAFC"
+            android:textSize="30sp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center" />
+
+        <!-- Secondary Phone Number / Info -->
+        <TextView
+            android:id="@+id/tvCallerNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="+91 98765 43210"
+            android:textColor="#94A3B8"
+            android:textSize="17sp" />
+
+        <!-- Call Status / Chronometer Timer -->
+        <TextView
+            android:id="@+id/tvCallStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Incoming call"
+            android:textColor="#A8C7FA"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <!-- Active Call Recording Indicator Pill -->
+        <TextView
+            android:id="@+id/tvRecordingIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="6dp"
+            android:text="● Recording Call"
+            android:textColor="#FCA5A5"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <!-- Conference Merge Pill Button (Shown when 2 calls are active/held) -->
+        <TextView
+            android:id="@+id/btnMergeCalls"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginTop="12dp"
+            android:paddingHorizontal="18dp"
+            android:gravity="center"
+            android:text="Merge Calls into Conference"
+            android:textColor="#FFFFFF"
+            android:textSize="13.5sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <!-- ===================================================== -->
+        <!-- INLINE 3x4 IN-CALL DTMF KEYPAD OVERLAY                -->
+        <!-- ===================================================== -->
+        <LinearLayout
+            android:id="@+id/layoutInCallDtmfPad"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="6dp">
+
+                <TextView
+                    android:id="@+id/tvDtmfTyped"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Keypad"
+                    android:textColor="#F8FAFC"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnCloseDtmfPad"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:text="Hide ✕"
+                    android:textColor="#93C5FD"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="3"
+                android:rowCount="4">
+
+                <TextView android:id="@+id/dtmf1" android:layout_width="0dp" android:layout_height="44dp" android:layout_columnWeight="1" android:layout_margin="3dp" android:gravity="center" android:text="1" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                <TextView android:id="@+id/dtmf2" android:layout_width="0dp" android:layout_height="44dp" android:layout_columnWeight="1" android:layout_margin="3dp" android:gravity="center" android:text="2" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                <TextView android:id="@+id/dtmf3" android:layout_width="0dp" android:layout_height="44dp" android:layout_columnWeight="1" android:layout_margin="3dp" android:gravity="center" android:text="3" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+
+                <TextView android:id="@+id/dtmf4" android:layout_width="0dp" android:layout_height="44dp" android:layout_columnWeight="1" android:layout_margin="3dp" android:gravity="center" android:text="4" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                <TextView android:id="@+id/dtmf5" android:layout_width="0dp" android:layout_height="44dp" android:layout_columnWeight="1" android:layout_margin="3dp" android:gravity="center" android:text="5" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                <TextView android:id="@+id/dtmf6" android:layout_width="0dp" android:layout_height="44dp" android:layout_columnWeight="1" android:layout_margin="3dp" android:gravity="center" android:text="6" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+
+                <TextView android:id="@+id/dtmf7" android:layout_width="0dp" android:layout_height="44dp" android:layout_columnWeight="1" android:layout_margin="3dp" android:gravity="center" android:text="7" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                <TextView android:id="@+id/dtmf8" android:layout_width="0dp" android:layout_height="44dp" android:layout_columnWeight="1" android:layout_margin="3dp" android:gravity="center" android:text="8" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                <TextView android:id="@+id/dtmf9" android:layout_width="0dp" android:layout_height="44dp" android:layout_columnWeight="1" android:layout_margin="3dp" android:gravity="center" android:text="9" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+
+                <TextView android:id="@+id/dtmfStar" android:layout_width="0dp" android:layout_height="44dp" android:layout_columnWeight="1" android:layout_margin="3dp" android:gravity="center" android:text="*" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                <TextView android:id="@+id/dtmf0" android:layout_width="0dp" android:layout_height="44dp" android:layout_columnWeight="1" android:layout_margin="3dp" android:gravity="center" android:text="0" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+                <TextView android:id="@+id/dtmfHash" android:layout_width="0dp" android:layout_height="44dp" android:layout_columnWeight="1" android:layout_margin="3dp" android:gravity="center" android:text="#" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+            </GridLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- ===================================================== -->
+        <!-- LAYOUT A: GOOGLE DIALER INCOMING-CALL BOTTOM CONTROLS -->
+        <!-- (Shown ONLY when Call.STATE_RINGING)                  -->
+        <!-- ===================================================== -->
+        <LinearLayout
+            android:id="@+id/layoutIncomingCallActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone">
+
+            <!-- Swipe-Up / Tap Reply with SMS Pill Button (No ^ arrow) -->
+            <TextView
+                android:id="@+id/btnReplyWithSms"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_marginBottom="32dp"
+                android:gravity="center"
+                android:paddingHorizontal="22dp"
+                android:text="💬   Reply with SMS"
+                android:textColor="#E2E8F0"
+                android:textSize="14.5sp"
+                android:textStyle="bold" />
+
+            <!-- Decline (Left - Tilted Red Handset) and Answer (Right - Upright Green Handset) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:weightSum="2">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/btnDeclineIncoming"
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:padding="20dp"
+                        android:src="@drawable/ic_call_end"
+                        android:contentDescription="Decline Call" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Decline"
+                        android:textColor="#F8FAFC"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/btnAnswerIncoming"
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:padding="21dp"
+                        android:src="@drawable/ic_call_answer"
+                        android:contentDescription="Answer Call" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="Answer"
+                        android:textColor="#F8FAFC"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- ===================================================== -->
+        <!-- LAYOUT B: ACTIVE / OUTGOING CALL CONTROLS             -->
+        <!-- (Hidden during Incoming Ringing; Shown once Answered) -->
+        <!-- ===================================================== -->
+        <LinearLayout
+            android:id="@+id/layoutActiveCallControlsGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_marginBottom="12dp"
+            android:visibility="visible">
+
+            <!-- 5-Button Control Row: Mute | Keypad | Speaker | Hold | More -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="5"
+                android:layout_marginBottom="28dp">
+
+                <!-- 1. Mute -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/btnToggleMute"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:gravity="center"
+                        android:text="🎙️"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/tvLabelMute"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Mute"
+                        android:textColor="#CBD5E1"
+                        android:textSize="11.5sp" />
+                </LinearLayout>
+
+                <!-- 2. Keypad -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/btnInCallKeypad"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:gravity="center"
+                        android:text="🔢"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/tvLabelKeypad"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Keypad"
+                        android:textColor="#CBD5E1"
+                        android:textSize="11.5sp" />
+                </LinearLayout>
+
+                <!-- 3. Speaker -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/btnToggleSpeaker"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:gravity="center"
+                        android:text="🔊"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/tvLabelSpeaker"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Speaker"
+                        android:textColor="#CBD5E1"
+                        android:textSize="11.5sp" />
+                </LinearLayout>
+
+                <!-- 4. Hold -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/btnToggleHold"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:gravity="center"
+                        android:text="⏸️"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/tvLabelHold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="Hold"
+                        android:textColor="#CBD5E1"
+                        android:textSize="11.5sp" />
+                </LinearLayout>
+
+                <!-- 5. Three-Dot More Button (Immediately Next to Hold) -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/btnInCallMore"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:gravity="center"
+                        android:text="⋮"
+                        android:textColor="#F8FAFC"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvLabelMore"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="More"
+                        android:textColor="#CBD5E1"
+                        android:textSize="11.5sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Google Dialer-Style Red Tilted Handset End-Call Button -->
+            <ImageView
+                android:id="@+id/btnEndCall"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:padding="20dp"
+                android:src="@drawable/ic_call_end"
+                android:contentDescription="End Call" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

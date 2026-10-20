@@ -845,11 +845,9 @@ class ScamGuardInCallService : InCallService() {
         val endCallPendingIntent = createActionPendingIntent(CallNotificationActionReceiver.ACTION_END_CALL, 103)
         val speakerPendingIntent = createActionPendingIntent(CallNotificationActionReceiver.ACTION_TOGGLE_SPEAKER, 104)
         val mutePendingIntent = createActionPendingIntent(CallNotificationActionReceiver.ACTION_TOGGLE_MUTE, 105)
-        val holdPendingIntent = createActionPendingIntent(CallNotificationActionReceiver.ACTION_HOLD_CALL, 106)
         val resumePendingIntent = createActionPendingIntent(CallNotificationActionReceiver.ACTION_RESUME_CALL, 107)
 
         val isIncomingRinging = (state == Call.STATE_RINGING)
-        val lockedOrScreenOff = isDeviceLockedOrScreenOff()
 
         val shouldUseHeadsUpChannel = isIncomingRinging && !isMainActivityVisible
         val channelId = if (shouldUseHeadsUpChannel) CHANNEL_ID_INCOMING_HEADSUP else CHANNEL_ID_ONGOING_SILENT
@@ -882,9 +880,7 @@ class ScamGuardInCallService : InCallService() {
 
         when (state) {
             Call.STATE_RINGING -> {
-                if (lockedOrScreenOff && !isMainActivityVisible) {
-                    builder.setFullScreenIntent(openAppPendingIntent, true)
-                }
+                builder.setFullScreenIntent(openAppPendingIntent, true)
                 builder.setStyle(
                     NotificationCompat.CallStyle.forIncomingCall(
                         callerPerson,
@@ -896,6 +892,8 @@ class ScamGuardInCallService : InCallService() {
 
             Call.STATE_DIALING, Call.STATE_CONNECTING -> {
                 val speakerLabel = if (isSpeakerOn) "Speaker: ON" else "Speaker: OFF"
+                val muteLabel = if (isMutedState) "Mute: ON" else "Mute: OFF"
+                
                 builder.setStyle(
                     NotificationCompat.CallStyle.forOngoingCall(
                         callerPerson,
@@ -908,9 +906,9 @@ class ScamGuardInCallService : InCallService() {
                     speakerPendingIntent
                 )
                 builder.addAction(
-                    android.R.drawable.ic_menu_view,
-                    "Open Call",
-                    openAppPendingIntent
+                    android.R.drawable.ic_btn_speak_now,
+                    muteLabel,
+                    mutePendingIntent
                 )
             }
 
@@ -925,11 +923,6 @@ class ScamGuardInCallService : InCallService() {
                     android.R.drawable.ic_media_play,
                     "Resume",
                     resumePendingIntent
-                )
-                builder.addAction(
-                    android.R.drawable.ic_menu_view,
-                    "Open Call",
-                    openAppPendingIntent
                 )
             }
 
@@ -952,11 +945,6 @@ class ScamGuardInCallService : InCallService() {
                     android.R.drawable.ic_btn_speak_now,
                     muteLabel,
                     mutePendingIntent
-                )
-                builder.addAction(
-                    android.R.drawable.ic_media_pause,
-                    "Hold",
-                    holdPendingIntent
                 )
             }
         }

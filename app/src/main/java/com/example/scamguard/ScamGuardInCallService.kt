@@ -891,9 +891,9 @@ class ScamGuardInCallService : InCallService() {
             }
 
             Call.STATE_DIALING, Call.STATE_CONNECTING -> {
-                val speakerLabel = if (isSpeakerOn) "Speaker: ON" else "Speaker: OFF"
-                val muteLabel = if (isMutedState) "Mute: ON" else "Mute: OFF"
-                
+                val speakerLabel = if (isSpeakerOn) "Speaker" else "Speaker"
+                val speakerIcon = if (isSpeakerOn) R.drawable.ic_speaker_on else R.drawable.ic_speaker_off
+
                 builder.setStyle(
                     NotificationCompat.CallStyle.forOngoingCall(
                         callerPerson,
@@ -901,14 +901,14 @@ class ScamGuardInCallService : InCallService() {
                     )
                 )
                 builder.addAction(
-                    android.R.drawable.ic_lock_silent_mode_off,
-                    speakerLabel,
-                    speakerPendingIntent
+                    NotificationCompat.Action.Builder(
+                        speakerIcon, speakerLabel, speakerPendingIntent
+                    ).build()
                 )
                 builder.addAction(
-                    android.R.drawable.ic_btn_speak_now,
-                    muteLabel,
-                    mutePendingIntent
+                    NotificationCompat.Action.Builder(
+                        R.drawable.ic_star_rate, "Open Call", openAppPendingIntent
+                    ).build()
                 )
             }
 
@@ -920,15 +920,23 @@ class ScamGuardInCallService : InCallService() {
                     )
                 )
                 builder.addAction(
-                    android.R.drawable.ic_media_play,
-                    "Resume",
-                    resumePendingIntent
+                    NotificationCompat.Action.Builder(
+                        R.drawable.ic_call_answer, "Resume", resumePendingIntent
+                    ).build()
+                )
+                builder.addAction(
+                    NotificationCompat.Action.Builder(
+                        R.drawable.ic_star_rate, "Open Call", openAppPendingIntent
+                    ).build()
                 )
             }
 
             else -> {
-                val speakerLabel = if (isSpeakerOn) "Speaker: ON" else "Speaker: OFF"
-                val muteLabel = if (isMutedState) "Mute: ON" else "Mute: OFF"
+                val speakerLabel = if (isSpeakerOn) "Speaker" else "Speaker"
+                val muteLabel = if (isMutedState) "Unmute" else "Mute"
+
+                val speakerIcon = if (isSpeakerOn) R.drawable.ic_speaker_on else R.drawable.ic_speaker_off
+                val muteIcon = if (isMutedState) R.drawable.ic_mic_off else R.drawable.ic_mic_on
 
                 builder.setStyle(
                     NotificationCompat.CallStyle.forOngoingCall(
@@ -936,15 +944,16 @@ class ScamGuardInCallService : InCallService() {
                         endCallPendingIntent
                     )
                 )
+                
                 builder.addAction(
-                    android.R.drawable.ic_lock_silent_mode_off,
-                    speakerLabel,
-                    speakerPendingIntent
+                    NotificationCompat.Action.Builder(
+                        speakerIcon, speakerLabel, speakerPendingIntent
+                    ).build()
                 )
                 builder.addAction(
-                    android.R.drawable.ic_btn_speak_now,
-                    muteLabel,
-                    mutePendingIntent
+                    NotificationCompat.Action.Builder(
+                        muteIcon, muteLabel, mutePendingIntent
+                    ).build()
                 )
             }
         }

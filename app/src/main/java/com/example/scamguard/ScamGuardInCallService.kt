@@ -18,6 +18,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
+import android.media.AudioAttributes
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
@@ -46,18 +47,20 @@ class ScamGuardInCallService : InCallService() {
     companion object {
         private const val TAG = "ScamGuardCallService"
 
-        // High-importance channel for heads-up incoming call banner when user is in another app
-        private const val CHANNEL_ID_INCOMING_HEADSUP = "scamguard_incoming_headsup_v4"
-        // Silent, non-peeking channel used when full-screen call UI is already visible or during ongoing calls
-        private const val CHANNEL_ID_ONGOING_SILENT = "scamguard_ongoing_silent_v4"
+        // v6 channel IDs: Both use IMPORTANCE_HIGH so the call notification is ALWAYS pinned
+        // at the very top of the notification panel (never demoted to the bottom "Silent" section).
+        private const val CHANNEL_ID_INCOMING_POPUP = "scamguard_incoming_popup_v6"
+        private const val CHANNEL_ID_ONGOING_TOP = "scamguard_ongoing_top_v6"
         private const val NOTIFICATION_ID_CALL = 41501
 
         const val EXTRA_OPEN_CALL_SCREEN = "com.example.scamguard.EXTRA_OPEN_CALL_SCREEN"
 
         private val trackedCalls = CopyOnWriteArrayList<Call>()
         private val callConnectTimestamps = ConcurrentHashMap<Call, Long>()
+        private val callAddedTimestamps = ConcurrentHashMap<Call, Long>()
         private val smsRepliedCalls = ConcurrentHashMap<Call, Boolean>()
         private val answeredCallGuards = ConcurrentHashMap<Call, Boolean>()
+        private val alertedIncomingCalls = ConcurrentHashMap<Call, Boolean>()
 
         var currentCall: Call? = null
             private set
@@ -115,7 +118,6 @@ class ScamGuardInCallService : InCallService() {
             }
         }
 
-        // Answers the incoming call exactly once
         fun answerCall(fromNotification: Boolean = false) {
             val targetCall = trackedCalls.firstOrNull { it.details.state == Call.STATE_RINGING } ?: currentCall
             if (targetCall != null && targetCall.details.state == Call.STATE_RINGING) {
@@ -125,23 +127,25 @@ class ScamGuardInCallService : InCallService() {
             }
         }
 
-        // Helper that forces the cellular/VoLTE modem to decline and disconnect the call
         private fun forceTerminateCall(context: Context?, targetCall: Call) {
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                    targetCall.details.state == Call.STATE_RINGING
+                ) {
                     targetCall.reject(Call.REJECT_REASON_DECLINED)
                 }
             } catch (_: Exception) {}
 
             try {
-                targetCall.reject(false, null)
+                if (targetCall.details.state == Call.STATE_RINGING) {
+                    targetCall.reject(false, null)
+                }
             } catch (_: Exception) {}
 
             try {
                 targetCall.disconnect()
             } catch (_: Exception) {}
 
-            // Backup OS-level Telecom hangup if the modem ignored the first InCallService signal
             if (context != null &&
                 ContextCompat.checkSelfPermission(context, Manifest.permission.ANSWER_PHONE_CALLS)
                 == PackageManager.PERMISSION_GRANTED
@@ -154,7 +158,6 @@ class ScamGuardInCallService : InCallService() {
             }
         }
 
-        // Rejects the incoming call or disconnects active call reliably
         fun rejectCall(fromNotification: Boolean = false) {
             val targetCall = trackedCalls.firstOrNull { it.details.state == Call.STATE_RINGING }
                 ?: currentCall
@@ -165,7 +168,6 @@ class ScamGuardInCallService : InCallService() {
             }
         }
 
-        // Sends quick-reply SMS once and reliably terminates the incoming call
         fun rejectCallWithSms(
             context: Context,
             rawMessage: String,
@@ -231,10 +233,8 @@ class ScamGuardInCallService : InCallService() {
                     smsManager.sendTextMessage(phoneNumber, null, message, null, null)
                 }
 
-                // 1. Terminate immediately
                 forceTerminateCall(context, ringingCall)
 
-                // 2. Retry at 200ms and 500ms in case the VoLTE/IMS modem was busy queueing the SMS
                 val mainHandler = Handler(Looper.getMainLooper())
                 val appCtx = context.applicationContext
                 mainHandler.postDelayed({
@@ -285,6 +285,7 @@ class ScamGuardInCallService : InCallService() {
                     CallAudioState.ROUTE_WIRED_OR_EARPIECE
                 }
             }
+            currentAudioRoute = targetRoute
             @Suppress("DEPRECATION")
             svc.setAudioRoute(targetRoute)
             svc.refreshCurrentCallPresentation()
@@ -386,7 +387,7 @@ class ScamGuardInCallService : InCallService() {
         }
 
         // =====================================================================
-        // VERIFIED CALL RECORDING ENGINE (SAVES ACTUAL M4A AUDIO + METADATA)
+        // VERIFIED CALL RECORDING ENGINE
         // =====================================================================
         fun startCallRecording(context: Context, onResult: (Boolean, String) -> Unit) {
             if (isRecordingCall) {
@@ -616,9 +617,7 @@ class ScamGuardInCallService : InCallService() {
     private fun isDeviceLockedOrScreenOff(): Boolean {
         val pm = getSystemService(POWER_SERVICE) as PowerManager
         val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
-        val isScreenOff = !pm.isInteractive
-        val isLocked = km.isKeyguardLocked
-        return isScreenOff || isLocked
+        return !pm.isInteractive || km.isKeyguardLocked
     }
 
     override fun onCallAdded(call: Call) {
@@ -637,6 +636,7 @@ class ScamGuardInCallService : InCallService() {
         if (!trackedCalls.contains(call)) {
             trackedCalls.add(call)
         }
+        callAddedTimestamps.putIfAbsent(call, System.currentTimeMillis())
         call.registerCallback(callCallback)
 
         currentCall = selectPrimaryCall()
@@ -651,6 +651,7 @@ class ScamGuardInCallService : InCallService() {
         if (!isIncoming) {
             launchInCallScreen(wakeScreen = false)
         } else if (isDeviceLockedOrScreenOff() || isMainActivityVisible) {
+            isMainActivityVisible = true
             launchInCallScreen(wakeScreen = true)
         }
 
@@ -662,8 +663,10 @@ class ScamGuardInCallService : InCallService() {
         call.unregisterCallback(callCallback)
         trackedCalls.remove(call)
         callConnectTimestamps.remove(call)
+        callAddedTimestamps.remove(call)
         smsRepliedCalls.remove(call)
         answeredCallGuards.remove(call)
+        alertedIncomingCalls.remove(call)
 
         if (trackedCalls.isNotEmpty()) {
             val nextCall = selectPrimaryCall()
@@ -700,8 +703,10 @@ class ScamGuardInCallService : InCallService() {
         }
         trackedCalls.clear()
         callConnectTimestamps.clear()
+        callAddedTimestamps.clear()
         smsRepliedCalls.clear()
         answeredCallGuards.clear()
+        alertedIncomingCalls.clear()
         clearCallNotification()
         instance = null
     }
@@ -757,31 +762,59 @@ class ScamGuardInCallService : InCallService() {
     private fun createCallNotificationChannels() {
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
-        val incomingHeadsUpChannel = NotificationChannel(
-            CHANNEL_ID_INCOMING_HEADSUP,
-            "Incoming Call Banner",
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = "Heads-up incoming call banner when using other apps"
-            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-            setSound(null, null)
-            enableVibration(false)
+        // Clean up legacy channels so Android Settings stays clean
+        listOf(
+            "scamguard_incoming_calls_v2",
+            "scamguard_ongoing_calls_v2",
+            "scamguard_incoming_calls_v3",
+            "scamguard_ongoing_calls_v3",
+            "scamguard_incoming_headsup_v4",
+            "scamguard_ongoing_silent_v4",
+            "scamguard_incoming_popup_v5",
+            "scamguard_ongoing_controls_v5"
+        ).forEach { oldId ->
+            try {
+                nm.deleteNotificationChannel(oldId)
+            } catch (_: Exception) {}
         }
 
-        val ongoingSilentChannel = NotificationChannel(
-            CHANNEL_ID_ONGOING_SILENT,
-            "Ongoing Calls",
-            NotificationManager.IMPORTANCE_LOW
+        val ringtoneAttrs = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+
+        // 1. Incoming Call Popup Channel: High importance for peeking over games (BGMI)
+        val incomingPopupChannel = NotificationChannel(
+            CHANNEL_ID_INCOMING_POPUP,
+            "Incoming Call Popup",
+            NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Persistent ongoing call status in the notification shade"
+            description = "Heads-up incoming call popup over apps and games"
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            setSound(Uri.EMPTY, ringtoneAttrs)
+            enableVibration(true)
+            vibrationPattern = longArrayOf(0L, 250L, 150L, 250L)
+            setBypassDnd(true)
+        }
+
+        // 2. Ongoing Call Top-of-Bar Channel:
+        // Uses IMPORTANCE_HIGH (with null sound & vibration) so Android's NotificationRankingManager
+        // pins it at the VERY TOP of the notification shade instead of the bottom "Silent" section!
+        val ongoingTopChannel = NotificationChannel(
+            CHANNEL_ID_ONGOING_TOP,
+            "Ongoing Active Call",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Pins ongoing call controls at the top of the notification bar"
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             setSound(null, null)
             enableVibration(false)
             setShowBadge(false)
+            setBypassDnd(true)
         }
 
-        nm.createNotificationChannel(incomingHeadsUpChannel)
-        nm.createNotificationChannel(ongoingSilentChannel)
+        nm.createNotificationChannel(incomingPopupChannel)
+        nm.createNotificationChannel(ongoingTopChannel)
     }
 
     private fun updateOrPublishCallNotification(
@@ -814,16 +847,28 @@ class ScamGuardInCallService : InCallService() {
             Call.STATE_RINGING -> "Incoming call"
             Call.STATE_DIALING -> "Calling..."
             Call.STATE_CONNECTING -> "Connecting..."
-            Call.STATE_HOLDING -> "On hold"
+            Call.STATE_HOLDING -> "Call on hold"
             Call.STATE_DISCONNECTING -> "Ending call..."
             Call.STATE_ACTIVE -> if (trackedCalls.size >= 2) "Active (${trackedCalls.size} calls)" else "Ongoing call"
             else -> "Ongoing call"
         }
 
-        val contentText = if (displayName != phoneNumber && phoneNumber != "Unknown") {
-            "$stateLabel • $phoneNumber"
+        val audioSummary = if (state == Call.STATE_ACTIVE || state == Call.STATE_DIALING || state == Call.STATE_CONNECTING) {
+            val spk = if (isSpeakerOn) "Speaker ON" else "Earpiece"
+            val mic = if (isMutedState) "Muted" else "Mic ON"
+            "$spk • $mic"
         } else {
-            stateLabel
+            ""
+        }
+
+        val contentText = buildString {
+            append(stateLabel)
+            if (displayName != phoneNumber && phoneNumber != "Unknown") {
+                append(" • ").append(phoneNumber)
+            }
+            if (audioSummary.isNotEmpty()) {
+                append("  (").append(audioSummary).append(")")
+            }
         }
 
         val isKnownSpam = reputation.reportCount > 0 && contactName == null
@@ -848,12 +893,20 @@ class ScamGuardInCallService : InCallService() {
         val resumePendingIntent = createActionPendingIntent(CallNotificationActionReceiver.ACTION_RESUME_CALL, 107)
 
         val isIncomingRinging = (state == Call.STATE_RINGING)
+        val showIncomingHeadsUpPopup = isIncomingRinging && !isMainActivityVisible
+        val channelId = if (showIncomingHeadsUpPopup) CHANNEL_ID_INCOMING_POPUP else CHANNEL_ID_ONGOING_TOP
 
-        val shouldUseHeadsUpChannel = isIncomingRinging && !isMainActivityVisible
-        val channelId = if (shouldUseHeadsUpChannel) CHANNEL_ID_INCOMING_HEADSUP else CHANNEL_ID_ONGOING_SILENT
+        val isFirstAlertForCall = isIncomingRinging && (alertedIncomingCalls.putIfAbsent(call, true) == null)
+
+        // Ensure a valid recent timestamp is ALWAYS present so Android never sorts the call to the bottom
+        val connectTimeMs = callConnectTimestamps[call] ?: 0L
+        val effectiveWhenMs = when {
+            connectTimeMs > 0L -> connectTimeMs
+            else -> callAddedTimestamps[call] ?: System.currentTimeMillis()
+        }
 
         val builder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(android.R.drawable.sym_action_call)
+            .setSmallIcon(R.drawable.ic_call_answer)
             .setLargeIcon(avatarBitmap)
             .setContentTitle(displayName)
             .setContentText(contentText)
@@ -862,99 +915,72 @@ class ScamGuardInCallService : InCallService() {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setAutoCancel(false)
-            .setOnlyAlertOnce(true)
+            // Colorized Foreground Service + PRIORITY_MAX + sortKey "00" forces Android's
+            // NotificationComparator to pin this notification at the #1 top slot of the shade!
+            .setColorized(true)
+            .setColor(Color.parseColor(if (isKnownSpam) "#450A0A" else "#13233F"))
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setSortKey("00_ACTIVE_CALL")
+            .setWhen(effectiveWhenMs)
+            .setShowWhen(true)
+            .setUsesChronometer(state == Call.STATE_ACTIVE && connectTimeMs > 0L)
+            .setOnlyAlertOnce(!isFirstAlertForCall)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
-            .setPriority(
-                if (shouldUseHeadsUpChannel) NotificationCompat.PRIORITY_MAX else NotificationCompat.PRIORITY_LOW
-            )
 
-        val connectTimeMs = callConnectTimestamps[call] ?: 0L
-        if (state == Call.STATE_ACTIVE && connectTimeMs > 0L) {
-            builder.setWhen(connectTimeMs)
-            builder.setUsesChronometer(true)
-            builder.setShowWhen(true)
-        } else {
-            builder.setUsesChronometer(false)
-            builder.setShowWhen(false)
-        }
-
-        when (state) {
-            Call.STATE_RINGING -> {
+        if (isIncomingRinging) {
+            if (showIncomingHeadsUpPopup) {
                 builder.setFullScreenIntent(openAppPendingIntent, true)
-                builder.setStyle(
-                    NotificationCompat.CallStyle.forIncomingCall(
-                        callerPerson,
-                        rejectPendingIntent,
-                        answerPendingIntent
-                    )
-                )
             }
+            builder.setStyle(
+                NotificationCompat.CallStyle.forIncomingCall(
+                    callerPerson,
+                    rejectPendingIntent,
+                    answerPendingIntent
+                )
+            )
+        } else {
+            val speakerIconRes = if (isSpeakerOn) R.drawable.ic_speaker_on else R.drawable.ic_speaker_off
+            val speakerLabel = if (isSpeakerOn) "Speaker: ON" else "Speaker: OFF"
 
-            Call.STATE_DIALING, Call.STATE_CONNECTING -> {
-                val speakerLabel = if (isSpeakerOn) "Speaker" else "Speaker"
-                val speakerIcon = if (isSpeakerOn) R.drawable.ic_speaker_on else R.drawable.ic_speaker_off
+            val muteIconRes = if (isMutedState) R.drawable.ic_mic_off else R.drawable.ic_mic_on
+            val muteLabel = if (isMutedState) "Mute: ON" else "Mute: OFF"
 
-                builder.setStyle(
-                    NotificationCompat.CallStyle.forOngoingCall(
-                        callerPerson,
-                        endCallPendingIntent
-                    )
-                )
-                builder.addAction(
-                    NotificationCompat.Action.Builder(
-                        speakerIcon, speakerLabel, speakerPendingIntent
-                    ).build()
-                )
-                builder.addAction(
-                    NotificationCompat.Action.Builder(
-                        R.drawable.ic_star_rate, "Open Call", openAppPendingIntent
-                    ).build()
-                )
-            }
+            val speakerAction = NotificationCompat.Action.Builder(
+                IconCompat.createWithResource(this, speakerIconRes),
+                speakerLabel,
+                speakerPendingIntent
+            ).setShowsUserInterface(false).build()
 
-            Call.STATE_HOLDING -> {
-                builder.setStyle(
-                    NotificationCompat.CallStyle.forOngoingCall(
-                        callerPerson,
-                        endCallPendingIntent
-                    )
-                )
-                builder.addAction(
-                    NotificationCompat.Action.Builder(
-                        R.drawable.ic_call_answer, "Resume", resumePendingIntent
-                    ).build()
-                )
-                builder.addAction(
-                    NotificationCompat.Action.Builder(
-                        R.drawable.ic_star_rate, "Open Call", openAppPendingIntent
-                    ).build()
-                )
-            }
+            val muteAction = NotificationCompat.Action.Builder(
+                IconCompat.createWithResource(this, muteIconRes),
+                muteLabel,
+                mutePendingIntent
+            ).setShowsUserInterface(false).build()
 
-            else -> {
-                val speakerLabel = if (isSpeakerOn) "Speaker" else "Speaker"
-                val muteLabel = if (isMutedState) "Unmute" else "Mute"
+            val endCallAction = NotificationCompat.Action.Builder(
+                IconCompat.createWithResource(this, R.drawable.ic_call_end),
+                "End Call",
+                endCallPendingIntent
+            ).setShowsUserInterface(false).build()
 
-                val speakerIcon = if (isSpeakerOn) R.drawable.ic_speaker_on else R.drawable.ic_speaker_off
-                val muteIcon = if (isMutedState) R.drawable.ic_mic_off else R.drawable.ic_mic_on
+            when (state) {
+                Call.STATE_HOLDING -> {
+                    val resumeAction = NotificationCompat.Action.Builder(
+                        IconCompat.createWithResource(this, R.drawable.ic_call_answer),
+                        "Resume",
+                        resumePendingIntent
+                    ).setShowsUserInterface(false).build()
 
-                builder.setStyle(
-                    NotificationCompat.CallStyle.forOngoingCall(
-                        callerPerson,
-                        endCallPendingIntent
-                    )
-                )
-                
-                builder.addAction(
-                    NotificationCompat.Action.Builder(
-                        speakerIcon, speakerLabel, speakerPendingIntent
-                    ).build()
-                )
-                builder.addAction(
-                    NotificationCompat.Action.Builder(
-                        muteIcon, muteLabel, mutePendingIntent
-                    ).build()
-                )
+                    builder.addAction(resumeAction)
+                    builder.addAction(speakerAction)
+                    builder.addAction(endCallAction)
+                }
+
+                else -> {
+                    builder.addAction(speakerAction)
+                    builder.addAction(muteAction)
+                    builder.addAction(endCallAction)
+                }
             }
         }
 

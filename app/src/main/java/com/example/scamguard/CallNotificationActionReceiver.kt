@@ -26,8 +26,8 @@ class CallNotificationActionReceiver : BroadcastReceiver() {
         Log.d(TAG, "Notification action received: $action")
 
         when (action) {
-            ACTION_ANSWER_CALL -> ScamGuardInCallService.answerCall()
-            ACTION_REJECT_CALL -> ScamGuardInCallService.rejectCall()
+            ACTION_ANSWER_CALL -> ScamGuardInCallService.answerCall(fromNotification = true)
+            ACTION_REJECT_CALL -> ScamGuardInCallService.rejectCall(fromNotification = true)
             ACTION_END_CALL -> ScamGuardInCallService.endCall()
             ACTION_TOGGLE_SPEAKER -> ScamGuardInCallService.toggleSpeakerphone()
             ACTION_TOGGLE_MUTE -> ScamGuardInCallService.toggleMute()
